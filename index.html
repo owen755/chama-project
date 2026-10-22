@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chama-Guard: Ultimate Unified Edition</title>
+    <style>
+        /* Modern FinTech UI Styles */
+        :root {
+            --bg-dark: #050505; --bg-glass: rgba(20, 20, 25, 0.7);
+            --neon-green: #00ff9d; --neon-dim: rgba(0, 255, 157, 0.2);
+            --neon-blue: #00e5ff; --alert-red: #ff3366; --alert-orange: #ff9900;
+            --text-main: #f0f0f0; --text-muted: #888899;
+            --border-glass: rgba(255, 255, 255, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: radial-gradient(circle at center, #111 0%, var(--bg-dark) 100%); color: var(--text-main); min-height: 100vh; overflow-x: hidden; padding-bottom: 2rem;}
+        
+        .hidden { display: none !important; }
+        .flex { display: flex; } .flex-col { display: flex; flex-direction: column; }
+        .items-center { align-items: center; } .justify-between { justify-content: space-between; }
+        .grid-2 { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 1.5rem;}
+        @media (min-width: 800px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+        
+        .text-neon { color: var(--neon-green); text-shadow: 0 0 10px var(--neon-dim); }
+        .text-red { color: var(--alert-red); }
+        .text-muted { color: var(--text-muted); font-size: 0.85rem; }
+        .font-mono { font-family: monospace; }
+        
+        /* Glassmorphism Cards */
+        .glass-card { background: var(--bg-glass); backdrop-filter: blur(12px); border: 1px solid var(--border-glass); border-radius: 16px; padding: 1.5rem; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); position: relative; overflow: hidden; }
+
+        /* Vault Screen */
+        #vault-screen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .locks-wrapper { display: flex; gap: 1.5rem; margin: 3rem 0; flex-wrap: wrap; justify-content: center; }
+        .lock-circle { width: 56px; height: 56px; border-radius: 50%; border: 2px dashed #444; cursor: pointer; transition: 0.3s; }
+        .lock-active { background: var(--neon-green); border: none; box-shadow: 0 0 25px var(--neon-green); transform: scale(1.1); }
+        
+        /* Dashboard Header */
+        #dashboard-screen { padding: 2rem; max-width: 1050px; margin: 0 auto; }
+        header { border-bottom: 1px solid var(--border-glass); padding-bottom: 1rem; margin-bottom: 2rem; }
+
+        /* Buttons & Badges */
+        .btn { padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: white; cursor: pointer; transition: 0.2s; font-weight: 600; }
+        .btn:hover { background: rgba(255,255,255,0.1); }
+        .btn-neon { background: var(--neon-green); color: black; border: none; box-shadow: 0 0 15px var(--neon-dim); width: 100%; padding: 1rem; font-size: 1.1rem; margin-top: 1rem;}
+        .btn-neon:hover { box-shadow: 0 0 25px var(--neon-green); background: #33ffb8; }
+        .btn-blue { background: var(--neon-blue); color: black; border: none; }
+        .btn-small { font-size: 0.75rem; padding: 0.3rem 0.6rem; }
+
+        .badge { padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: bold; cursor: pointer;}
+        .badge-red { background: rgba(255,51,102,0.1); border: 1px solid var(--alert-red); color: var(--alert-red); }
+        .badge-orange { background: rgba(255,153,0,0.1); border: 1px solid var(--alert-orange); color: var(--alert-orange); }
+        .badge-inactive { border-color: #444; color: #666; background: transparent; }
+
+        .btn-toggle { padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.8rem; border: 1px solid; cursor: pointer; font-weight: bold; width: 90px; text-align: center;}
+        .btn-stk { background: rgba(0, 229, 255, 0.1); border-color: var(--neon-blue); color: var(--neon-blue); }
+        .btn-cash { background: rgba(255, 153, 0, 0.1); border-color: #ff9900; color: #ff9900; }
+
+        /* Data Visuals */
+        .ring-container { position: relative; width: 140px; height: 140px; margin: 0 auto; }
+        .ring-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+        .ring-bg { stroke: #222; fill: transparent; stroke-width: 10; }
+        .ring-progress { stroke: var(--neon-green); fill: transparent; stroke-width: 10; stroke-dasharray: 440; stroke-dashoffset: 440; transition: 1s ease-out; }
+        
+        .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 100px; margin-top: 1rem; padding-bottom: 5px; border-bottom: 1px solid #444; }
+        .bar { flex: 1; background: linear-gradient(to top, var(--neon-dim), var(--neon-green)); border-radius: 4px 4px 0 0; transition: 1s; position: relative; }
+        .bar span { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; color: var(--text-muted); }
+
+        /* Command Center Table */
+        .member-row { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border-glass); transition: 0.3s; }
+        .member-row:hover { background: rgba(255,255,255,0.02); }
+        
+        /* Modals & Audit Log */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background: var(--bg-dark); border: 1px solid var(--neon-green); border-radius: 16px; padding: 2rem; width: 90%; max-width: 450px; box-shadow: 0 0 40px rgba(0,255,157,0.1); }
+        .modal-content input, .modal-content select { width: 100%; padding: 0.8rem; margin: 0.5rem 0 1.5rem; background: #111; border: 1px solid #333; color: white; border-radius: 8px; font-family: inherit;}
+
+        .audit-feed { height: 120px; overflow-y: auto; font-family: monospace; font-size: 0.85rem; padding: 1rem; background: #0a0a0a; border-radius: 8px; border: 1px solid #222; }
+        .log-entry { margin-bottom: 0.5rem; padding-left: 10px; border-left: 2px solid var(--neon-green); animation: slideIn 0.3s; }
+        .log-ai { border-left-color: var(--neon-blue); color: var(--neon-blue); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* History & EQ */
+        .history-chart { display: flex; align-items: flex-end; justify-content: space-around; height: 180px; margin-top: 1rem; padding-bottom: 25px; border-bottom: 1px solid #444; position: relative;}
+        .hist-bar { width: 40px; background: linear-gradient(to top, #111, var(--neon-blue)); border-radius: 4px 4px 0 0; position: relative; }
+        .hist-bar.current { background: linear-gradient(to top, #111, var(--neon-green)); }
+        .hist-label { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; color: var(--text-muted); width: 60px; text-align: center;}
+        .hist-val { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: bold; }
+
+        .equalizer { display: none; align-items: center; justify-content: center; gap: 4px; height: 50px; margin: 1rem 0; }
+        .eq-bar { width: 6px; background: var(--neon-blue); border-radius: 3px; animation: eq 0.8s ease-in-out infinite alternate; }
+        .eq-bar:nth-child(2) { animation-delay: 0.2s; } .eq-bar:nth-child(3) { animation-delay: 0.4s; } .eq-bar:nth-child(4) { animation-delay: 0.1s; } .eq-bar:nth-child(5) { animation-delay: 0.5s; }
+        @keyframes eq { 0% { height: 10px; } 100% { height: 40px; } }
+    </style>
+</head>
+<body>
+
+    <!-- VAULT LOCK SCREEN -->
+    <div id="vault-screen">
+        <h1 class="text-neon" style="font-size: 2.5rem; letter-spacing: 0.2em;">CHAMA-GUARD</h1>
+        <p class="text-muted" style="letter-spacing: 0.1em;">ENCRYPTED LEDGER • <span id="vault-count">5</span> MEMBERS</p>
+        <div id="lock-container" class="locks-wrapper"></div>
+        <p id="lock-status" class="text-neon" style="opacity: 0.7; font-family: monospace;">AWAITING CONSENSUS PROTOCOL...</p>
+    </div>
+
+    <!-- DASHBOARD SCREEN -->
+    <div id="dashboard-screen" class="hidden">
+        
+        <!-- HEADER WITH NEW SETTINGS & HISTORY BUTTONS -->
+        <header class="flex justify-between items-center">
+            <div>
+                <h1 class="text-neon" style="font-size: 1.8rem;">CHAMA-GUARD</h1>
+                <p class="text-muted">Status: Unlocked <button class="btn btn-small" style="margin-left:10px;" onclick="relockVault()">Lock</button></p>
+            </div>
+            <div class="flex items-center" style="gap: 1rem;">
+                <button onclick="openModal('settings-modal')" class="btn btn-small">⚙️ Settings</button>
+                <button onclick="openModal('history-modal')" class="btn btn-small">📈 History</button>
+                <button onclick="openModal('ai-modal')" class="btn btn-blue font-mono btn-small">⚡ AI Hub</button>
+                <div style="text-align: right;">
+                    <p class="text-muted">Verified Pool</p>
+                    <p id="pool-display" class="font-mono text-neon" style="font-size: 2rem;">KES 320,000</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- RESTORED: GOAL & MERRY GO ROUND CARDS -->
+        <div class="grid-2">
+            <!-- Goal & Growth Data -->
+            <div class="glass-card flex-col items-center">
+                <div style="position: absolute; top: 1rem; left: 1rem; display: flex; gap: 0.5rem;">
+                    <button onclick="openModal('goal-modal')" class="btn btn-small">✏️ Edit Goal</button>
+                    <button onclick="openModal('analytics-modal')" class="btn btn-small">📊 Tracking</button>
+                </div>
+                
+                <h2 id="goal-title" class="text-muted" style="margin-top: 1rem;">Matatu Purchase Fund</h2>
+                
+                <div class="flex items-center" style="gap: 2rem; width: 100%; justify-content: center; margin-top: 1rem;">
+                    <div class="ring-container">
+                        <svg class="ring-svg"><circle cx="70" cy="70" r="60" class="ring-bg" /><circle id="progress-ring" cx="70" cy="70" r="60" class="ring-progress" /></svg>
+                        <div class="ring-text text-neon" id="progress-text">0%</div>
+                    </div>
+                    
+                    <div style="width: 120px;">
+                        <p class="text-muted" style="text-align: center; font-size: 0.7rem;">Goal Target</p>
+                        <p id="goal-target-display" class="font-mono text-neon" style="text-align: center; margin-bottom: 10px;">500,000</p>
+                        <div class="bar-chart">
+                            <div class="bar" style="height: 30%;"><span>80k</span></div>
+                            <div class="bar" style="height: 50%;"><span>150k</span></div>
+                            <div class="bar" style="height: 70%;"><span>240k</span></div>
+                            <div class="bar" id="current-growth-bar" style="height: 90%; background: var(--neon-blue);"><span>320k</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rotation Spotlight -->
+            <div class="glass-card" style="border-color: rgba(0, 255, 157, 0.3);">
+                <button onclick="openModal('rotation-modal')" class="btn btn-small" style="position: absolute; top: 1rem; right: 1rem;">✏️ Edit</button>
+                
+                <div class="flex items-center" style="gap: 0.5rem; margin-bottom: 1rem;">
+                    <div style="width: 10px; height: 10px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 10px var(--neon-green);"></div>
+                    <p style="color: var(--neon-green); font-weight: bold; font-size: 0.8rem; letter-spacing: 1px;">MERRY-GO-ROUND</p>
+                </div>
+                <h3 id="rot-current" style="font-size: 2.2rem; margin-bottom: 0.5rem;">Owen Njeri</h3>
+                <p class="text-muted" style="margin-bottom: 2rem;">Receiving the total KES 75,000 pool today.</p>
+                <div style="border-top: 1px solid var(--border-glass); padding-top: 1rem;">
+                    <p class="text-muted">Next up: <span id="rot-next" style="color: white; font-weight: bold;">Jane W.</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAYMENT COMMAND CENTER WITH PENALTIES -->
+        <div class="glass-card" style="padding: 0; margin-bottom: 1.5rem;">
+            <div class="flex justify-between items-center" style="padding: 1rem 1.5rem; background: rgba(0,0,0,0.5); border-bottom: 1px solid var(--border-glass);">
+                <div>
+                    <h2>Live Attendance & Payment Routing</h2>
+                    <p class="text-muted">Edit member profiles. Apply late/absent penalties instantly.</p>
+                </div>
+                <button onclick="openModal('member-modal')" class="btn btn-blue btn-small">+ Add Member</button>
+            </div>
+            
+            <div id="members-container" class="flex-col"></div>
+            
+            <div style="padding: 1.5rem; background: rgba(0,0,0,0.3);">
+                <button id="trigger-btn" class="btn-neon" onclick="triggerPayments()">
+                    📡 Trigger Prompts & Verify Payments
+                </button>
+            </div>
+        </div>
+
+        <!-- Trust & Audit Log -->
+        <div class="glass-card" style="padding: 1rem;">
+            <h2 style="font-size: 1rem; margin-bottom: 0.5rem; color: var(--neon-blue);">Live Trust & Audit Feed</h2>
+            <div id="audit-feed" class="audit-feed">
+                <div class="log-entry">[SYSTEM] Vault unlocked securely. Ledger decrypted.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS SECTION -->
+    
+    <!-- Member Profile Edit Modal (NOW EXPLICITLY VISIBLE) -->
+    <div id="profile-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-neon" style="margin-bottom: 1rem;">Edit Member Profile</h2>
+            <input type="hidden" id="edit-member-id">
+            <label class="text-muted">Full Name</label>
+            <input type="text" id="edit-member-name">
+            <label class="text-muted">Primary Phone Number (Contact)</label>
+            <input type="text" id="edit-member-phone" placeholder="e.g. 0712345678">
+            <label class="text-neon" style="font-size: 0.85rem;">M-Pesa STK Prompt Number (If different)</label>
+            <input type="text" id="edit-member-stkphone" placeholder="Will ping this number for payments">
+            <div class="flex justify-between" style="margin-top: 1rem;">
+                <button class="btn" style="border-color: var(--alert-red); color: var(--alert-red);" onclick="deleteMember()">🗑️ Remove</button>
+                <div class="flex" style="gap: 0.5rem;">
+                    <button class="btn" onclick="closeModal('profile-modal')">Cancel</button>
+                    <button class="btn btn-neon" style="width: auto; margin:0; padding: 0.5rem 1rem;" onclick="saveProfile()">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chama Settings Modal -->
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-neon" style="margin-bottom: 1rem;">Chama Protocol Settings</h2>
+            <label class="text-muted">Meeting Frequency</label>
+            <select id="set-freq">
+                <option value="Weekly">Weekly</option><option value="Monthly" selected>Monthly</option><option value="Irregular">Irregular (Custom Dates)</option>
+            </select>
+            <label class="text-muted">Penalty Fine: Late Arrival (KES)</label>
+            <input type="number" id="set-fine-late" value="500">
+            <label class="text-muted">Penalty Fine: Absent/Missing (KES)</label>
+            <input type="number" id="set-fine-absent" value="1000">
+            <div class="flex justify-between">
+                <button class="btn" onclick="closeModal('settings-modal')">Cancel</button>
+                <button class="btn btn-neon" style="width: auto; margin:0;" onclick="saveSettings()">Save Protocol</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Graph Modal -->
+    <div id="history-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="flex justify-between items-center" style="margin-bottom: 1rem;">
+                <h2 class="text-neon">Meeting History & Growth</h2>
+                <button class="btn btn-small" onclick="closeModal('history-modal')">Close</button>
+            </div>
+            <p class="text-muted">Comparing total collections across past meeting dates.</p>
+            <div class="history-chart" id="history-chart-container"></div>
+        </div>
+    </div>
+
+    <!-- Edit Rotation Modal -->
+    <div id="rotation-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-neon" style="margin-bottom: 1rem;">Set Payout Rotation</h2>
+            <label class="text-muted">Receiving Today</label>
+            <select id="input-rot-current"></select>
+            <label class="text-muted">Receiving Next Meeting</label>
+            <select id="input-rot-next"></select>
+            <div class="flex justify-between">
+                <button class="btn" onclick="closeModal('rotation-modal')">Cancel</button>
+                <button class="btn btn-neon" style="width: auto; margin:0;" onclick="saveRotation()">Save Rotation</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Goal Modal -->
+    <div id="goal-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-neon" style="margin-bottom: 1rem;">Set Chama Goal</h2>
+            <label class="text-muted">Goal Name</label>
+            <input type="text" id="input-goal-name" value="Matatu Purchase Fund">
+            <label class="text-muted">Target Amount (KES)</label>
+            <input type="number" id="input-goal-target" value="500000">
+            <div class="flex justify-between">
+                <button class="btn" onclick="closeModal('goal-modal')">Cancel</button>
+                <button class="btn btn-neon" style="width: auto; margin:0;" onclick="saveGoal()">Save Goal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div id="member-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-neon" style="margin-bottom: 1rem;">Add New Member</h2>
+            <label class="text-muted">Full Name</label>
+            <input type="text" id="add-name">
+            <label class="text-muted">Phone Number</label>
+            <input type="text" id="add-phone">
+            <label class="text-muted">1-Character Security PIN</label>
+            <input type="text" id="add-pin" maxlength="1" style="font-family: monospace; text-align: center;">
+            <div class="flex justify-between">
+                <button class="btn" onclick="closeModal('member-modal')">Cancel</button>
+                <button class="btn btn-neon" style="width: auto; margin:0;" onclick="saveNewMember()">Add & Expand Vault</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI & Analytics Modals -->
+    <div id="ai-modal" class="modal-overlay">
+        <div class="modal-content" style="text-align: center;">
+            <h2 class="text-neon" style="margin-bottom: 0.5rem;">Gemini & Groq AI Core</h2>
+            <p class="text-muted" style="margin-bottom: 2rem;">Multimodal Reconciliation Engine</p>
+            <div class="grid-2">
+                <button class="btn" style="height: 100px;" onclick="simulateVision()"><span style="font-size: 2rem; display:block;">📸</span> Scan Ledger</button>
+                <button class="btn" style="height: 100px;" onclick="simulateVoice()"><span style="font-size: 2rem; display:block;">🎙️</span> Voice Note</button>
+            </div>
+            <div id="eq-display" class="equalizer"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
+            <p id="ai-status" class="font-mono" style="margin-top: 1.5rem; min-height: 40px; color: var(--neon-blue);"></p>
+            <button class="btn" style="width: 100%; margin-top: 1rem;" onclick="closeModal('ai-modal')">Close Core</button>
+        </div>
+    </div>
+
+    <div id="analytics-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-neon">Member Analytics</h2>
+            <select id="track-member-select"><option>Owen Njeri</option><option>Jane W.</option><option>Lennox</option></select>
+            <div class="flex" style="gap: 1rem;">
+                <div style="flex: 1;"><label class="text-muted">From Date</label><input type="date" value="2026-06-01"></div>
+                <div style="flex: 1;"><label class="text-muted">To Date</label><input type="date" value="2026-10-30"></div>
+            </div>
+            <button class="btn btn-neon" style="width: 100%; margin-bottom: 1.5rem;" onclick="generateGraph()">Generate Graph</button>
+            <div id="personal-graph-container" class="hidden">
+                <div class="bar-chart" id="personal-chart" style="height: 120px;"></div>
+            </div>
+            <button class="btn" style="width: 100%; margin-top: 1rem;" onclick="closeModal('analytics-modal')">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA & STATE ---
+        let pool = 320000;
+        let goalTarget = 500000;
+        let goalName = "Matatu Purchase Fund";
+        let rotation = { current: "Owen Njeri", next: "Jane W." }; 
+        let baseContribution = 15000;
+        let pinInputs = 0;
+        let isSimulating = false;
+        
+        let settings = { freq: "Monthly", fineLate: 500, fineAbsent: 1000 };
+        let pastMeetings = [
+            { date: "Jul 30", collected: 70000 }, { date: "Aug 30", collected: 71000 },
+            { date: "Sep 30", collected: 75000 }, { date: "Oct 30", collected: 72000 }
+        ];
+        
+        let members = [
+            { id: 1, name: "Owen Njeri", role: "Treasurer", phone: "0711111111", stkPhone: "0711111111", fine: 0, penalty: "none", status: 'pending', payMethod: 'stk' },
+            { id: 2, name: "Jane W.", role: "Chairperson", phone: "0722222222", stkPhone: "0722222222", fine: 0, penalty: "none", status: 'pending', payMethod: 'stk' },
+            { id: 3, name: "Lennox", role: "Member", phone: "0733333333", stkPhone: "0799999999", fine: 0, penalty: "none", status: 'pending', payMethod: 'cash' },
+            { id: 4, name: "Sarah K.", role: "Member", phone: "0744444444", stkPhone: "0744444444", fine: 0, penalty: "none", status: 'pending', payMethod: 'stk' },
+            { id: 5, name: "Brian M.", role: "Member", phone: "0755555555", stkPhone: "0755555555", fine: 0, penalty: "none", status: 'pending', payMethod: 'stk' }
+        ];
+
+        // --- VAULT INITIALIZATION ---
+        function renderLocks() {
+            const container = document.getElementById('lock-container');
+            document.getElementById('vault-count').innerText = members.length;
+            container.innerHTML = '';
+            for (let i = 0; i < members.length; i++) {
+                const div = document.createElement('div');
+                div.className = `lock-circle ${i < pinInputs ? 'lock-active' : ''}`;
+                div.onclick = function() {
+                    if(pinInputs < members.length) {
+                        pinInputs++; renderLocks();
+                        if(pinInputs === members.length) {
+                            document.getElementById('lock-status').innerText = "DECRYPTING LEDGER...";
+                            setTimeout(() => {
+                                document.getElementById('vault-screen').classList.add('hidden');
+                                document.getElementById('dashboard-screen').classList.remove('hidden');
+                                updateUI();
+                            }, 800);
+                        }
+                    }
+                };
+                container.appendChild(div);
+            }
+        }
+        function relockVault() {
+            pinInputs = 0;
+            document.getElementById('lock-status').innerText = "AWAITING CONSENSUS PROTOCOL...";
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('vault-screen').classList.remove('hidden');
+            renderLocks();
+        }
+
+        // --- UI UPDATES ---
+        function updateUI() {
+            // Goal & Ring
+            document.getElementById('goal-title').innerText = goalName;
+            document.getElementById('goal-target-display').innerText = goalTarget.toLocaleString();
+            document.getElementById('pool-display').innerText = `KES ${pool.toLocaleString()}`;
+            
+            let percent = Math.min((pool / goalTarget) * 100, 100);
+            document.getElementById('progress-ring').style.strokeDashoffset = 440 - (440 * percent) / 100;
+            document.getElementById('progress-text').innerText = `${Math.round(percent)}%`;
+            document.getElementById('current-growth-bar').innerHTML = `<span>${(pool/1000).toFixed(0)}k</span>`;
+
+            // Rotation
+            document.getElementById('rot-current').innerText = rotation.current;
+            document.getElementById('rot-next').innerText = rotation.next;
+
+            // Members Table
+            const container = document.getElementById('members-container');
+            container.innerHTML = members.map(m => {
+                let totalExpected = baseContribution + m.fine;
+                return `
+                <div class="member-row">
+                    <div class="flex items-center" style="gap: 1rem;">
+                        <div class="flex items-center justify-center" style="width: 40px; height: 40px; border-radius: 50%; background: #222; font-weight: bold; color: var(--neon-green);">
+                            ${m.name.charAt(0)}
+                        </div>
+                        <div>
+                            <div class="flex items-center" style="gap: 0.5rem; margin-bottom: 0.2rem;">
+                                <p style="font-weight: bold;">${m.name}</p>
+                                <!-- NEW EXPLICIT EDIT BUTTON -->
+                                <button onclick="openProfile(${m.id})" class="badge badge-inactive">✏️ Edit Profile</button>
+                            </div>
+                            <p class="text-muted" style="font-size:0.7rem;">Ping: ${m.stkPhone}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center" style="gap: 1rem;">
+                        <div class="flex flex-col" style="gap: 0.2rem;">
+                            <button onclick="togglePenalty(${m.id}, 'late')" class="badge ${m.penalty === 'late' ? 'badge-orange' : 'badge-inactive'}" ${m.status === 'paid' ? 'disabled' : ''}>⏰ Late</button>
+                            <button onclick="togglePenalty(${m.id}, 'absent')" class="badge ${m.penalty === 'absent' ? 'badge-red' : 'badge-inactive'}" ${m.status === 'paid' ? 'disabled' : ''}>❌ Absent</button>
+                        </div>
+                        <div style="width: 80px; text-align:right;">
+                            <p class="font-mono ${m.fine > 0 ? 'text-red' : ''}" style="font-size: 0.85rem;">KES ${totalExpected.toLocaleString()}</p>
+                        </div>
+                        <button onclick="togglePayMethod(${m.id})" class="btn-toggle ${m.payMethod === 'stk' ? 'btn-stk' : 'btn-cash'} ${m.status === 'paid' ? 'btn-disabled' : ''}" ${m.status === 'paid' ? 'disabled' : ''}>
+                            ${m.payMethod === 'stk' ? 'STK' : 'CASH'}
+                        </button>
+                        <div class="font-mono text-right" style="width: 70px;">
+                            ${m.status === 'paid' ? `<span class="text-neon">✓ PAID</span>` : `<span style="color: #666;">Pending</span>`}
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+            
+            // Trigger State
+            const allPaid = members.every(m => m.status === 'paid');
+            const btn = document.getElementById('trigger-btn');
+            if(members.length === 0) {
+                btn.innerText = "No Members in Chama";
+                btn.disabled = true; btn.style.opacity = 0.5;
+            } else if(allPaid) {
+                btn.innerText = "Meeting Protocol Complete";
+                btn.disabled = true; btn.style.opacity = 0.5;
+            } else {
+                btn.disabled = false; btn.style.opacity = 1;
+                btn.innerText = "📡 Trigger Prompts & Verify Payments";
+            }
+        }
+
+        // --- PENALTIES & PAYMENTS ---
+        function togglePenalty(id, type) {
+            const m = members.find(x => x.id === id);
+            if(m.status === 'paid') return;
+            if(m.penalty === type) {
+                m.penalty = 'none'; m.fine = 0;
+                logAudit(`Penalty removed for ${m.name}`);
+            } else {
+                m.penalty = type; m.fine = (type === 'late') ? settings.fineLate : settings.fineAbsent;
+                logAudit(`[ALERT] ${m.name} marked ${type.toUpperCase()}. Added KES ${m.fine} fine.`);
+            }
+            updateUI();
+        }
+
+        function togglePayMethod(id) {
+            const m = members.find(x => x.id === id);
+            if(m && m.status !== 'paid') { m.payMethod = m.payMethod === 'stk' ? 'cash' : 'stk'; updateUI(); }
+        }
+
+        function triggerPayments() {
+            if(isSimulating || members.length === 0) return;
+            let stkCount = members.filter(m => m.status !== 'paid' && m.payMethod === 'stk').length;
+            let cashCount = members.filter(m => m.status !== 'paid' && m.payMethod === 'cash').length;
+            
+            const btn = document.getElementById('trigger-btn');
+            btn.innerText = `Pinging ${stkCount} STK Phones... Verifying ${cashCount} Cash...`;
+            btn.style.background = "#00cc7e";
+            isSimulating = true;
+            
+            setTimeout(() => {
+                let collected = 0;
+                members.forEach(m => {
+                    if (m.status !== 'paid') {
+                        m.status = 'paid';
+                        collected += (baseContribution + m.fine);
+                    }
+                });
+                pool += collected;
+                isSimulating = false;
+                btn.style.background = "var(--neon-green)";
+                btn.innerText = "Meeting Protocol Complete";
+                logAudit(`Meeting Closed. Daraja STK pushed to ${stkCount} lines. Total verified: +KES ${collected}`);
+                updateUI();
+            }, 2500);
+        }
+
+        function logAudit(msg, isAI = false) {
+            const feed = document.getElementById('audit-feed');
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            feed.innerHTML = `<div class="log-entry ${isAI ? 'log-ai' : ''}">[${time}] ${msg}</div>` + feed.innerHTML;
+        }
+
+        // --- MODAL SAVES & OPENS ---
+        function openModal(id) { 
+            document.getElementById(id).style.display = 'flex'; 
+            if(id === 'rotation-modal') populateRotationDropdowns();
+            if(id === 'history-modal') renderHistoryGraph();
+        }
+        function closeModal(id) { 
+            document.getElementById(id).style.display = 'none'; 
+            document.getElementById('ai-status').innerText = ''; 
+            document.getElementById('eq-display').style.display = 'none';
+        }
+
+        function openProfile(id) {
+            const m = members.find(x => x.id === id);
+            document.getElementById('edit-member-id').value = m.id;
+            document.getElementById('edit-member-name').value = m.name;
+            document.getElementById('edit-member-phone').value = m.phone;
+            document.getElementById('edit-member-stkphone').value = m.stkPhone;
+            openModal('profile-modal');
+        }
+
+        function saveProfile() {
+            const id = parseInt(document.getElementById('edit-member-id').value);
+            const m = members.find(x => x.id === id);
+            m.name = document.getElementById('edit-member-name').value;
+            m.phone = document.getElementById('edit-member-phone').value;
+            const newStk = document.getElementById('edit-member-stkphone').value;
+            if(m.stkPhone !== newStk) { logAudit(`STK Push number for ${m.name} updated to ${newStk}`); m.stkPhone = newStk; }
+            closeModal('profile-modal'); updateUI();
+        }
+
+        function deleteMember() {
+            const id = parseInt(document.getElementById('edit-member-id').value);
+            const m = members.find(x => x.id === id);
+            if(confirm(`Are you sure you want to completely remove ${m.name} from the Chama?`)) {
+                members = members.filter(x => x.id !== id);
+                closeModal('profile-modal');
+                logAudit(`[ALERT] Member removed: ${m.name}. Vault padlock shrank to ${members.length} keys.`);
+                updateUI();
+            }
+        }
+
+        function saveSettings() {
+            settings.freq = document.getElementById('set-freq').value;
+            settings.fineLate = parseInt(document.getElementById('set-fine-late').value);
+            settings.fineAbsent = parseInt(document.getElementById('set-fine-absent').value);
+            closeModal('settings-modal'); logAudit("Chama protocol rules updated.");
+            members.forEach(m => {
+                if(m.penalty === 'late') m.fine = settings.fineLate;
+                if(m.penalty === 'absent') m.fine = settings.fineAbsent;
+            });
+            updateUI();
+        }
+
+        function populateRotationDropdowns() {
+            const cur = document.getElementById('input-rot-current'); const nxt = document.getElementById('input-rot-next');
+            cur.innerHTML = ''; nxt.innerHTML = '';
+            members.forEach(m => { cur.add(new Option(m.name, m.name)); nxt.add(new Option(m.name, m.name)); });
+            cur.value = rotation.current; nxt.value = rotation.next;
+        }
+        function saveRotation() {
+            rotation.current = document.getElementById('input-rot-current').value;
+            rotation.next = document.getElementById('input-rot-next').value;
+            closeModal('rotation-modal'); logAudit(`Rotation updated: ${rotation.current} receiving today.`); updateUI();
+        }
+
+        function saveGoal() {
+            goalName = document.getElementById('input-goal-name').value;
+            goalTarget = parseInt(document.getElementById('input-goal-target').value);
+            closeModal('goal-modal'); logAudit(`Goal updated to: ${goalName}`); updateUI();
+        }
+
+        function saveNewMember() {
+            const name = document.getElementById('add-name').value;
+            const phone = document.getElementById('add-phone').value;
+            if(!name || !document.getElementById('add-pin').value) { alert("Name and PIN required."); return; }
+            members.push({ id: members.length + 1, name: name, role: "Member", phone: phone, stkPhone: phone, fine: 0, penalty: 'none', amount: 15000, status: 'pending', payMethod: 'stk' });
+            closeModal('member-modal'); logAudit(`[SECURITY] New member added. Padlock expanded.`); updateUI();
+        }
+
+        // --- HISTORY & AI ---
+        function renderHistoryGraph() {
+            const container = document.getElementById('history-chart-container');
+            let html = ''; let maxVal = 100000; 
+            pastMeetings.forEach(mtg => {
+                html += `<div class="hist-bar" style="height: ${(mtg.collected / maxVal) * 100}%"><span class="hist-val">${(mtg.collected/1000)}k</span><span class="hist-label">${mtg.date}</span></div>`;
+            });
+            let currentExpected = members.reduce((sum, m) => sum + baseContribution + m.fine, 0);
+            html += `<div class="hist-bar current" style="height: ${(currentExpected / maxVal) * 100}%"><span class="hist-val" style="color:var(--neon-green)">${(currentExpected/1000)}k</span><span class="hist-label" style="color:white; font-weight:bold;">TODAY</span></div>`;
+            container.innerHTML = html;
+        }
+
+        function simulateVision() {
+            document.getElementById('ai-status').innerText = "Scanning handwritten ledger (Gemini 1.5 Pro)...";
+            setTimeout(() => {
+                document.getElementById('ai-status').innerText = "SUCCESS: Extracted JSON.\nLog: Jane paid 1,000 KES penalty for late arrival.";
+                pool += 1000; updateUI(); logAudit("AI Vision: Extracted 1,000 KES penalty from physical ledger photo.", true);
+            }, 2000);
+        }
+
+        function simulateVoice() {
+            document.getElementById('ai-status').innerText = "Listening... (Groq Whisper active)";
+            document.getElementById('eq-display').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('eq-display').style.display = 'none';
+                document.getElementById('ai-status').innerText = "Transcribed: 'Owen paid an extra 5,000 for the land share.'";
+                pool += 5000; updateUI(); logAudit("AI Voice: Applied verbal correction of +5,000 KES to Owen's record.", true);
+            }, 3000);
+        }
+
+        function generateGraph() {
+            document.getElementById('personal-graph-container').classList.remove('hidden');
+            const chart = document.getElementById('personal-chart');
+            chart.innerHTML = '';
+            for(let i=0; i<6; i++) {
+                const val = Math.floor(Math.random() * 60) + 20;
+                chart.innerHTML += `<div class="bar" style="height: ${val}%; background: var(--neon-blue);"><span>${val}k</span></div>`;
+            }
+        }
+
+        // Init
+        renderLocks();
+    </script>
+</body>
+</html>
